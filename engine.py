@@ -15,22 +15,26 @@ class RenderEngine:
         height = scene.height
         aspect_ratio = width / height
         
-        x0 = -1.
-        x1 = 1.
-        x_step = (x1 - x0) / (width - 1)
-
-        y0 = -1. / aspect_ratio
-        y1 = 1. / aspect_ratio
-        y_step = (y1 - y0) / (height - 1)
-
         camera = scene.camera
+        pixel_size = camera.square_size
+        cam_focal_distance = camera.focal_distance
+        cam_focus = camera.eye
+        cam_look_at = camera.look_at
+        up = camera.up
+
+        w = (cam_focus - cam_look_at).normalize()
+        u = (up.crossProduct(w)).normalize()
+
+        v = w.crossProduct(u)
+
+        Q_origin = cam_focus - cam_focal_distance*w + pixel_size*(((height)/2)*v-((width)/2)*u)
+
         pixels = Image(width, height)
 
-        for i in range(height):
-            y = y0 + i * y_step
-            for j in range(width):
-                x = x0 + j * x_step
-                ray = Ray(camera, Point(x, y) - camera)
+        for i in range(0, height):
+            for j in range(0, width):
+                Q_current = Q_origin + pixel_size * (j * u - i * v)
+                ray = Ray(cam_focus, (Q_current-cam_focus).normalize())
                 pixels.set_pixel(j, i, self.rayTrace(ray, scene))
             if show_progess:
                 print(f"{(i/height) * 100:.2f}%", end='\r')
@@ -73,8 +77,8 @@ class RenderEngine:
     def color_at(self, object_hit, hit_pos: Point, normal: Vector3, scene: Scene) -> Color:
         material = object_hit.material
         obj_color = material.color_at(hit_pos)
-        to_cam = scene.camera - hit_pos
-        color = material.ambient * Color.fromHex("#000000")
+        to_cam = scene.camera.eye - hit_pos
+        color = material.ambient * obj_color
         specular_k = 50
         
         # Calculating lights

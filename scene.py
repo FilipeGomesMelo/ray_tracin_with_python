@@ -1,4 +1,5 @@
 from __future__ import annotations
+from camera import Camera
 
 from light import Light
 from objects3D import Object3D
@@ -10,12 +11,11 @@ class Scene:
     Has a camera, a list of objects, a width and a height
     """
     def __init__(
-            self, camera: Vector3, objects: list[Object3D], lights: Light[Light], 
-            width: float, height: float, bg_color: Color=Color()
+            self, camera: Camera, objects: list[Object3D], lights: Light[Light], bg_color: Color=Color()
         ) -> None:
         self.camera = camera
         self.objects = objects
         self.lights = lights
-        self.width = width
-        self.height = height
+        self.width = camera.h_res
+        self.height = camera.v_res
         self.bg_color = bg_color

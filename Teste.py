@@ -21,6 +21,11 @@ class TestVector(unittest.TestCase):
     def testMultiplication(self):
         result = self.v1 * 2
         self.assertEqual(result, Vector3(2, -4, -4))
+
+    def testCrossProduct(self):
+        result = self.v1.crossProduct(self.v2)
+        self.assertEqual(result, Vector3(-6., -15., 12))
+
     
     def testDivision(self):
         result = self.v1 / 2

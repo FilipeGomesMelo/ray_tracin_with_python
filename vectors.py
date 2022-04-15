@@ -12,9 +12,18 @@ class Vector3:
         return f'({self.x}, {self.y}, {self.z})'
     
     def dotProduct(self, other: Vector3) -> float:
-        """Returns the dot product between self Vector and another Vector3D"""
+        """Returns the dot product between self Vector and another Vector3"""
         assert isinstance(other, Vector3)
         return (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
+    
+    def crossProduct(self, other: Vector3) -> Vector3:
+        """Returns the cross product between self Vector and another Vector3"""
+        assert isinstance(other, Vector3)
+        return Vector3(
+            self.y*other.z - self.z*other.y,
+            self.z*other.x - self.x*other.z,
+            self.x*other.y - self.y*other.x
+        )
     
     def magnitude(self) -> float:
         """Returns the magnitude of the Vector"""
