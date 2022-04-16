@@ -10,6 +10,11 @@ class Vector3:
     
     def __str__(self) -> str:
         return f'({self.x}, {self.y}, {self.z})'
+
+    def kronProduct(self, other: Vector3) -> float:
+        """Returns the Kronecker product between self Vector and another Vector3"""
+        assert isinstance(other, Vector3)
+        return Vector3((self.x * other.x), (self.y * other.y), (self.z * other.z))
     
     def dotProduct(self, other: Vector3) -> float:
         """Returns the dot product between self Vector and another Vector3"""

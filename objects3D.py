@@ -18,7 +18,7 @@ class Object3D:
     def __init__(self, material: Material) -> None:
         self.material = material
     
-    def intersects(self, ray: Ray) -> float | None:
+    def intersects(self, ray: Ray) -> "float | None":
         """Checks if a ray intersects the Object3D.
         Returns distance to the closest intersection if the ray does intersect, returns None if it does not"""
         pass
@@ -39,7 +39,7 @@ class Sphere(Object3D):
         \tCenter: {self.center}
         \tRadius: {self.radius}'''
 
-    def intersects(self, ray: Ray) -> float | None:
+    def intersects(self, ray: Ray) -> "float | None":
         """Checks if a ray intersects the sphere.
         Returns distance to intersection if the ray does intersect, returns None if it does not"""
         sphere_to_ray = ray.origin - self.center
@@ -72,7 +72,7 @@ class Plane(Object3D):
         self.point = point
         self._normal = normal.normalize()
     
-    def intersects(self, ray: Ray) -> float | None:
+    def intersects(self, ray: Ray) -> "float | None":
         """Checks if a ray intersects the plane. Returns distance to intersection if the ray does intersect, returns None if it does not"""
 
         if (self._normal.dotProduct(ray.direction) >= 0.001):

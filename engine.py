@@ -60,7 +60,7 @@ class RenderEngine:
             color += self.rayTrace(new_ray, scene, depth+1) * object_hit.material.reflection
         return color
     
-    def find_nearest(self, ray: Ray, scene: Scene) -> tuple[float | None, Object3D | None]:
+    def find_nearest(self, ray: Ray, scene: Scene) -> "tuple[float | None, Object3D | None]":
         """Finds the nearest point of intersection of a ray with any object in a scene
         Returns a tuple of distance to the hit point and the object that was hit
         """
@@ -74,11 +74,11 @@ class RenderEngine:
 
         return (distance_min, object_hit)
     
-    def color_at(self, object_hit, hit_pos: Point, normal: Vector3, scene: Scene) -> Color:
+    def color_at(self, object_hit: Object3D, hit_pos: Point, normal: Vector3, scene: Scene) -> Color:
         material = object_hit.material
         obj_color = material.color_at(hit_pos)
         to_cam = scene.camera.eye - hit_pos
-        color = material.ambient * obj_color
+        color = material.ambient * (obj_color.kronProduct(Color.fromHex("#FFFFFF")))
         specular_k = 50
         
         # Calculating lights
@@ -91,7 +91,7 @@ class RenderEngine:
 
             # Diffuse shading (lambert)
             color += (
-                obj_color 
+                (obj_color.kronProduct(light.color))
                 * material.diffuse 
                 * max(normal.dotProduct(to_light.direction), 0)
             )

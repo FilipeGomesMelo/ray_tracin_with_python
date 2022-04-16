@@ -36,9 +36,9 @@ def main():
     # ]
     # scene = Scene(CAMERA, OBJECTS, LIGHTS, bg_color=Color.fromHex("#191970"))
 
-    CAM_WIDTH = 1280
-    CAM_HEIGHT = 720
-    CAM_SQUARE_SIZE = 0.03
+    CAM_WIDTH = 1920
+    CAM_HEIGHT = 1080
+    CAM_SQUARE_SIZE = 0.02
     CAM_FOCAL_DISTANCE = 40
     CAM_EYE = Point(0, -1, -3)
     CAM_LOOK_AT = Vector3(0, 20, 100)
@@ -69,8 +69,8 @@ def main():
         )
     ]
     LIGHTS = [
-        Light(Point(5, -5, -20), Color.fromHex("#FF0000")),
-        Light(Point(-5, -10.5, -15), Color.fromHex("#00FF00"))
+        Light(Point(5, -5, -20), Color.fromHex("#eb4034")),
+        Light(Point(-5, -10.5, -15), Color.fromHex("#34eb3d"))
     ]
     scene = Scene(CAMERA, OBJECTS, LIGHTS, bg_color=Color.fromHex("#87CEEB"))
     
