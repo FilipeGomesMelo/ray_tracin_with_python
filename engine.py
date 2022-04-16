@@ -84,6 +84,10 @@ class RenderEngine:
         # Calculating lights
         for light in scene.lights:
             to_light = Ray(hit_pos, light.position - hit_pos)
+            distance_hit, object_hit = self.find_nearest(to_light, scene)
+
+            if object_hit != None and 0 < distance_hit < (light.position - hit_pos).magnitude():
+                continue
 
             # Diffuse shading (lambert)
             color += (
