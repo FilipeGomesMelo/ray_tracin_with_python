@@ -1,6 +1,4 @@
-from vectors import Vector3
-from vectors import Point
-
+from components import Vector3, Point
 
 class Ray:
     """A half-line with an Point as its Origin and a normalized Vector3 as its direction"""

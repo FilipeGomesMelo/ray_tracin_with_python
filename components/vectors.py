@@ -74,7 +74,7 @@ class Vector3:
     def __truediv__(self, other: float) -> Vector3:
         """Division by scalar value"""
         assert not isinstance(other, Vector3)
-        return Vector3(self.x / other, self.y / other, self.z / other)
+        return Vector3(self.x / (other or 1), self.y / (other or 1), self.z / (other or 1))
 
 class Color(Vector3):
     """Stores colors as RGB triplets, based of Vector3"""

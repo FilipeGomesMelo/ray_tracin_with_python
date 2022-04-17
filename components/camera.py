@@ -1,4 +1,4 @@
-from vectors import Point, Vector3
+from components import Point, Vector3
 
 class Camera:
     """3D camera class used for scenes"""

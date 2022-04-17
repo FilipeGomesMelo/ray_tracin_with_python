@@ -1,4 +1,4 @@
-from vectors import Color, Point
+from components import Color, Point
 
 class Material:
     """Material has color and properties that define how light interacts with it"""

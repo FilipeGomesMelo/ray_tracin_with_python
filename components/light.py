@@ -1,4 +1,4 @@
-from vectors import Color, Point
+from components import Color, Point
 
 class Light:
     """Point light source of a certain color"""
