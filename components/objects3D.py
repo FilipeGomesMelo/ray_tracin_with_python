@@ -70,12 +70,20 @@ class Plane(Object3D):
         self.point = point
         self._normal = normal.normalize()
     
+    def __str__(self) -> str:
+        return f'''-Plane:
+        \ point: {self.point}
+        \ normal: {self._normal}'''
+
+
     def intersects(self, ray: Ray) -> "float | None":
         """Checks if a ray intersects the plane. Returns distance to intersection if the ray does intersect, returns None if it does not"""
+        # There is something wrong here where the function only works if we invert the normal, need to fix later
+        temp_normal = -self._normal
 
-        if (self._normal.dotProduct(ray.direction) >= 0.001):
+        if (temp_normal.dotProduct(ray.direction) >= 0.001):
             
-            distance = (self._normal.dotProduct(self.point - ray.origin))/(self._normal.dotProduct(ray.direction))
+            distance = (temp_normal.dotProduct(self.point - ray.origin))/(temp_normal.dotProduct(ray.direction))
             if distance > 0:
                 return distance
                 
@@ -84,4 +92,4 @@ class Plane(Object3D):
     # surface_point is only here so we can interact with the plane the same way we would with a sphere
     def normal(self, surface_point: Point=None) -> Vector3:
         """Returns surface normal, same normal for any surface_point"""
-        return -self._normal
+        return self._normal

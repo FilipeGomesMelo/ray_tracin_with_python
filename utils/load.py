@@ -24,7 +24,7 @@ def load_from_json(file_path: str) -> dict:
 
 def identify_object(object_opt: dict, material_ambient: float = 0.2) -> Object3D:
     new_object = None
-    color = Color(*object_opt["color"])
+    color = Color(*map(lambda x: x/255,object_opt["color"]))
     if "sphere" in object_opt:
         sphere_options = object_opt["sphere"]
         center = sphere_options["center"]
@@ -44,7 +44,7 @@ def build_scene(infos: dict) -> Scene:
     """
     CAM_WIDTH = infos["cam_width"]
     CAM_HEIGHT = infos["cam_height"]
-    BG_COLOR = Color(*infos["bg_color"])
+    BG_COLOR = Color(*map(lambda x: x/255, infos["bg_color"]))
     CAM_SQUARE_SIZE = infos["cam_square_size"]
     CAM_FOCAL_DISTANCE = infos["cam_focal_distance"]
     CAM_LOOK_AT = Vector3(*infos["cam_look_at"])
