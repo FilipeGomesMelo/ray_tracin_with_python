@@ -1,7 +1,5 @@
+from components import Material, Vector3, Point, Ray
 import math
-from material import Material
-from vectors import Vector3, Point
-from ray import Ray
 
 class Object3D:
     """Abstract class for 3D objects used in the Rendering Engine

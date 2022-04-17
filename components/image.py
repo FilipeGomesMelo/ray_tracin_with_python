@@ -1,7 +1,7 @@
 from __future__ import annotations
 from io import TextIOWrapper
 
-from vectors import Color
+from components import Color
 
 class Image:
     def __init__(self, width: int, height: int) -> None:

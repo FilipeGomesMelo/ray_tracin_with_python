@@ -1,9 +1,5 @@
 from __future__ import annotations
-from camera import Camera
-
-from light import Light
-from objects3D import Object3D
-from vectors import Color, Vector3
+from components import Camera, Light, Object3D, Color
 
 
 class Scene:

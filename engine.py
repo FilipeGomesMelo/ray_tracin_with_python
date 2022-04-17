@@ -1,8 +1,4 @@
-from objects3D import Object3D
-from vectors import Vector3, Color, Point
-from ray import Ray
-from image import Image
-from scene import Scene
+from components import Vector3, Color, Point, Ray, Object3D, Image, Scene
 
 class RenderEngine:
     """Renders 3D objects into a 2D image using ray tracing"""

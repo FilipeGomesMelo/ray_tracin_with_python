@@ -1,6 +1,6 @@
 
+from components import Vector3
 import unittest
-from vectors import Vector3
 
 class TestVector(unittest.TestCase):
     def setUp(self) -> None:
