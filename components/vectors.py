@@ -84,6 +84,10 @@ class Color(Vector3):
         y = int(hex[3:5], 16) / 255.0
         z = int(hex[5:], 16) / 255.0
         return cls(x, y, z)
+    
+    @classmethod
+    def fromRGB(cls, r=0, g=0, b=0) -> Color:
+        return cls(r / 255, g / 255, b / 255)
 
 class Point(Vector3):
     """Point stores coordinates of a point in 3D space, based on Vector"""

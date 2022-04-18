@@ -9,10 +9,9 @@ class RenderEngine:
     def render(self, scene: Scene, show_progess: bool = False) -> Image:
         width = scene.width
         height = scene.height
-        aspect_ratio = width / height
         
         camera = scene.camera
-        pixel_size = camera.square_size
+        pixel_size = camera.pixel_size
         cam_focal_distance = camera.focal_distance
         cam_focus = camera.eye
         cam_look_at = camera.look_at

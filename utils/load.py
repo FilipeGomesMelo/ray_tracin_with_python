@@ -22,19 +22,23 @@ def load_from_json(file_path: str) -> dict:
         "objects": infos["objects"],
     }
 
-def identify_object(object_opt: dict, material_ambient: float = 0.2) -> Object3D:
+def identify_object(object_opt: dict, mat_ambient: float = 1,
+                    mat_diffuse: float = 1, mat_specular: float = 1, 
+                    mat_reflection: float = 0) -> Object3D:
     new_object = None
-    color = Color(*map(lambda x: x/255,object_opt["color"]))
+    color = Color.fromRGB(*object_opt["color"])
+    material = Material(color, mat_ambient, mat_diffuse, 
+                        mat_specular, mat_reflection)
     if "sphere" in object_opt:
         sphere_options = object_opt["sphere"]
         center = sphere_options["center"]
         radius = sphere_options["radius"]
-        new_object = Sphere(Point(*center), radius, Material(color, material_ambient))
+        new_object = Sphere(Point(*center), radius, material)
     elif "plane" in object_opt:
         plane_options = object_opt["plane"]
         sample = plane_options["sample"]
         normal = plane_options["normal"]
-        new_object = Plane(Point(*sample), Vector3(*normal), Material(color, material_ambient))
+        new_object = Plane(Point(*sample), Vector3(*normal), material)
     return new_object
 
 def build_scene(infos: dict) -> Scene:
@@ -44,7 +48,12 @@ def build_scene(infos: dict) -> Scene:
     """
     CAM_WIDTH = infos["cam_width"]
     CAM_HEIGHT = infos["cam_height"]
-    BG_COLOR = Color(*map(lambda x: x/255, infos["bg_color"]))
+
+    # If height is not specified, it`s possible:
+    # aspect_ratio = width / height
+    # height = width / aspect_ratio
+
+    BG_COLOR = Color.fromRGB(*infos["bg_color"])
     CAM_SQUARE_SIZE = infos["cam_square_size"]
     CAM_FOCAL_DISTANCE = infos["cam_focal_distance"]
     CAM_LOOK_AT = Vector3(*infos["cam_look_at"])

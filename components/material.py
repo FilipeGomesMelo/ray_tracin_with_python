@@ -3,7 +3,8 @@ from components import Color, Point
 class Material:
     """Material has color and properties that define how light interacts with it"""
     
-    def __init__(self, color=Color.fromHex('#FFFFFF'), ambient=0.05, diffuse=1.0, specular=1.0, reflection=0.5) -> None:
+    def __init__(self, color=Color.fromHex('#FFFFFF'), ambient=1.0, 
+                 diffuse=1.0, specular=1.0, reflection=0.0) -> None:
         self.color = color
         self.ambient = ambient
         self.diffuse = diffuse
