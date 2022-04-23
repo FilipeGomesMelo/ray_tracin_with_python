@@ -1,3 +1,4 @@
+from math import sqrt
 from components import Vector3, Color, Point, Ray, Object3D, Image, Scene
 
 class RenderEngine:
@@ -48,11 +49,43 @@ class RenderEngine:
         hit_normal = object_hit.normal(hit_pos)
         color += self.color_at(object_hit, hit_pos, hit_normal, scene)
         if depth < self.MAX_DEPTH:
-            new_ray_pos = hit_pos + hit_normal * self.MIN_DISPLACE
-            new_ray_dir = ray.direction - 2 * ray.direction.dotProduct(hit_normal) * hit_normal
-            new_ray = Ray(new_ray_pos, new_ray_dir)
-            # Attenuating the reflected color by reflection coefficient
-            color += self.rayTrace(new_ray, scene, depth+1) * object_hit.material.reflection
+            material_hit = object_hit.material
+            # Checks if object is reflective
+            if material_hit.reflection > 0:
+                # Note to self: we might want to do this as a object3D method that returns
+                # the reflected ray or None if the ray does not reflect
+                new_ray_pos = hit_pos + hit_normal * self.MIN_DISPLACE
+                new_ray_dir = ray.direction - 2 * ray.direction.dotProduct(hit_normal) * hit_normal
+                new_ray = Ray(new_ray_pos, new_ray_dir)
+                # Attenuating the reflected color by reflection coefficient
+                color += self.rayTrace(new_ray, scene, depth+1) * material_hit.reflection
+            # Checks if object is not opaque
+            if material_hit.refraction > 0:
+                # Note to self: we might want to do this as a object3D method that returns
+                # the refracted ray or None if the ray does not refract
+
+                normal = hit_normal
+                omega = -ray.direction
+                relative_refraction = material_hit.refraction
+                # Checks if ray is leaving the object, is so, invert normal and coefficient (air coefficient is 1)
+                if normal ^ omega < 0:
+                    relative_refraction = 1/material_hit.refraction
+                    normal = -hit_normal
+
+                # delta for the refraction formula
+                delta = 1 - (1/(relative_refraction**2)) * (1 - (normal ^ omega)**2)
+
+                # if delta is less than 0, total refraction occurs and we have no new ray
+                if delta >= 0:
+                    inverse_refraction = 1 / relative_refraction
+
+                    # generating the new ray
+                    new_ray_dir = - inverse_refraction * omega - (sqrt(delta) - inverse_refraction * (normal ^ omega)) * normal
+                    new_ray_pos = hit_pos - normal * self.MIN_DISPLACE
+                    new_ray = Ray(new_ray_pos, new_ray_dir)
+                    # Attenuating the ray color by transmission coefficient
+                    color += self.rayTrace(new_ray, scene, depth+1) * material_hit.transmission
+                
         return color
     
     def find_nearest(self, ray: Ray, scene: Scene) -> "tuple[float | None, Object3D | None]":
@@ -72,30 +105,29 @@ class RenderEngine:
     def color_at(self, object_hit: Object3D, hit_pos: Point, normal: Vector3, scene: Scene) -> Color:
         material = object_hit.material
         obj_color = material.color_at(hit_pos)
-        to_cam = scene.camera.eye - hit_pos
         color = material.ambient * (obj_color.kronProduct(Color.fromHex("#FFFFFF")))
-        specular_k = 50
+        phong_coefficient = material.phong
         
         # Calculating lights
         for light in scene.lights:
             to_light = Ray(hit_pos, light.position - hit_pos)
             distance_hit, object_hit = self.find_nearest(to_light, scene)
 
-            if object_hit != None and 0 < distance_hit < (light.position - hit_pos).magnitude():
+            if object_hit != None and 0 < distance_hit < to_light.direction ^ (light.position - hit_pos):
                 continue
 
             # Diffuse shading (lambert)
             color += (
                 (obj_color.kronProduct(light.color))
                 * material.diffuse 
-                * max(normal.dotProduct(to_light.direction), 0)
+                * max(normal ^ to_light.direction, 0)
             )
             # Specular shading (Blinn-Phong)
-            half_vector = (to_light.direction + to_cam).normalize()
+            half_vector = 2 * (normal ^ to_light.direction) * normal - to_light.direction
             color += (
                 light.color
                 * material.specular
-                * max(normal.dotProduct(half_vector), 0) ** specular_k
+                * max(normal ^ half_vector, 0) ** phong_coefficient
             )
 
         return color

@@ -49,7 +49,10 @@ class Sphere(Object3D):
 
         if discriminant >= 0:
             distance = (-b - math.sqrt(discriminant)) / 2
-            if distance > 0:
+            if distance > 0.001:
+                return distance
+            distance = (-b + math.sqrt(discriminant)) / 2
+            if distance > 0.001:
                 return distance
         return None
     
@@ -78,13 +81,9 @@ class Plane(Object3D):
 
     def intersects(self, ray: Ray) -> "float | None":
         """Checks if a ray intersects the plane. Returns distance to intersection if the ray does intersect, returns None if it does not"""
-        # There is something wrong here where the function only works if we invert the normal, need to fix later
-        temp_normal = -self._normal
-
-        if (temp_normal.dotProduct(ray.direction) >= 0.001):
-            
-            distance = (temp_normal.dotProduct(self.point - ray.origin))/(temp_normal.dotProduct(ray.direction))
-            if distance > 0:
+        if abs(self._normal ^ ray.direction) >= 0.001:
+            distance = (self._normal ^ (self.point - ray.origin))/(self._normal ^ ray.direction)
+            if distance > 0.001:
                 return distance
                 
         return None
