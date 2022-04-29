@@ -4,7 +4,7 @@ class Camera:
     """3D camera class used for scenes"""
     def __init__(self, 
             v_res: int, h_res: int, pixel_size: float, focal_distance: float, 
-            eye: Point, look_at: Vector3, up: Vector3 = Vector3(0, 1, 0)
+            eye: Point, look_at: Point, up: Vector3 = Vector3(0, 1, 0)
         ) -> None:
         self.v_res = v_res
         self.h_res = h_res

@@ -110,6 +110,7 @@ class RenderEngine:
         obj_color = material.color_at(hit_pos)
         color = material.ambient * (obj_color.kronProduct(Color.fromHex("#FFFFFF")))
         phong_coefficient = material.phong
+        to_camera = (scene.camera.eye - hit_pos).normalize()
         
         # Calculating lights
         for light in scene.lights:
@@ -125,12 +126,12 @@ class RenderEngine:
                 * material.diffuse 
                 * max(normal ^ to_light.direction, 0)
             )
-            # Specular shading (Blinn-Phong)
+            # Specular shading (Phong)
             half_vector = 2 * (normal ^ to_light.direction) * normal - to_light.direction
             color += (
                 light.color
                 * material.specular
-                * max(normal ^ half_vector, 0) ** phong_coefficient
+                * max(half_vector ^ to_camera, 0) ** phong_coefficient
             )
 
         return color

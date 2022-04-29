@@ -20,19 +20,22 @@ def load_from_json(file_path: str) -> dict:
         "cam_up": tuple(infos["up"]),
         "bg_color": tuple(infos["background_color"]),
         "objects": infos["objects"],
+        "ambient_light": tuple(infos["ambient_light"]),
+        "lights": infos["lights"]
     }
 
 def identify_object(object_opt: dict) -> Object3D:
     new_object = None
     
-    ambient: float = object_opt.get("ka", 1)
-    diffuse: float = object_opt.get("kd", 0)
-    specular: float = object_opt.get("ks", 0)
-    reflection: float = 0
+    ambient: float = object_opt.get("ka", 0.05)
+    diffuse: float = object_opt.get("kd", 1)
+    specular: float = object_opt.get("ks", 1)
+    reflection: float = 0.5
+    phong: float =  object_opt.get("exp", 50)
 
     color = Color.fromRGB(*object_opt["color"])
     material = Material(color, ambient, diffuse, 
-                        specular, reflection)
+                        specular, reflection, phong)
 
     if "sphere" in object_opt:
         sphere_options = object_opt["sphere"]
@@ -69,13 +72,8 @@ def build_scene(infos: dict) -> Scene:
             CAM_FOCAL_DISTANCE, CAM_EYE, CAM_LOOK_AT, CAM_UP)
     OBJECTS = [identify_object(object_opt) for object_opt in infos["objects"]]
     
-    ambient_light_position = CAM_EYE - CAM_LOOK_AT.normalize() * 100
-    ambient_light_color = infos.get("ambient_light", (255, 255, 255))
-    ambient_light_color = Color.fromRGB(*ambient_light_color)
-    
-    LIGHTS = [Light(ambient_light_position, ambient_light_color)]
-    LIGHTS.extend([
+    LIGHTS = [
         Light(Point(*light["position"]), Color.fromRGB(*light["intensity"])) 
         for light in infos.get("lights", [])
-    ])
+    ]
     return Scene(CAMERA, OBJECTS, LIGHTS, bg_color = BG_COLOR)
