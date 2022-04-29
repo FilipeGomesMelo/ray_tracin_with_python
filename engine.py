@@ -20,20 +20,23 @@ class RenderEngine:
 
         w = (cam_focus - cam_look_at).normalize()
         u = (up.crossProduct(w)).normalize()
-
         v = w.crossProduct(u)
 
-        Q_origin = cam_focus - cam_focal_distance*w + pixel_size*(((height)/2)*v-((width)/2)*u)
+        z_vector = cam_focus - cam_focal_distance * w
+        y_vector = (height / 2) * v
+        x_vector = (width / 2 ) * u
+        image_center = z_vector + pixel_size * (y_vector - x_vector)
 
         pixels = Image(width, height)
 
-        for i in range(0, height):
-            for j in range(0, width):
-                Q_current = Q_origin + pixel_size * (j * u - i * v)
-                ray = Ray(cam_focus, (Q_current-cam_focus).normalize())
-                pixels.set_pixel(j, i, self.rayTrace(ray, scene))
+        for y in range(0, height):
+            for x in range(0, width):
+                position = image_center + pixel_size * (x * u - y * v)
+                ray_direction = (position - cam_focus).normalize()
+                ray = Ray(cam_focus, ray_direction)
+                pixels.set_pixel(x, y, self.rayTrace(ray, scene))
             if show_progess:
-                print(f"{(i/height) * 100:.2f}%", end='\r')
+                print(f"{(y / height) * 100:.2f}%", end='\r')
         return pixels
     
     def rayTrace(self, ray: Ray, scene: Scene, depth=0) -> Color:

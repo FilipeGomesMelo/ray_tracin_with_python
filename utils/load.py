@@ -22,13 +22,18 @@ def load_from_json(file_path: str) -> dict:
         "objects": infos["objects"],
     }
 
-def identify_object(object_opt: dict, mat_ambient: float = 1,
-                    mat_diffuse: float = 1, mat_specular: float = 1, 
-                    mat_reflection: float = 0) -> Object3D:
+def identify_object(object_opt: dict) -> Object3D:
     new_object = None
+    
+    ambient: float = object_opt.get("ka", 1)
+    diffuse: float = object_opt.get("kd", 0)
+    specular: float = object_opt.get("ks", 0)
+    reflection: float = 0
+
     color = Color.fromRGB(*object_opt["color"])
-    material = Material(color, mat_ambient, mat_diffuse, 
-                        mat_specular, mat_reflection)
+    material = Material(color, ambient, diffuse, 
+                        specular, reflection)
+
     if "sphere" in object_opt:
         sphere_options = object_opt["sphere"]
         center = sphere_options["center"]
@@ -53,15 +58,24 @@ def build_scene(infos: dict) -> Scene:
     # aspect_ratio = width / height
     # height = width / aspect_ratio
 
-    BG_COLOR = Color.fromRGB(*infos["bg_color"])
-    CAM_SQUARE_SIZE = infos["cam_square_size"]
     CAM_FOCAL_DISTANCE = infos["cam_focal_distance"]
     CAM_LOOK_AT = Vector3(*infos["cam_look_at"])
+    BG_COLOR = Color.fromRGB(*infos["bg_color"])
+    CAM_SQUARE_SIZE = infos["cam_square_size"]
     CAM_EYE = Point(*infos["cam_eye"])
     CAM_UP = Vector3(*infos["cam_up"])
 
     CAMERA = Camera(CAM_HEIGHT, CAM_WIDTH, CAM_SQUARE_SIZE, 
             CAM_FOCAL_DISTANCE, CAM_EYE, CAM_LOOK_AT, CAM_UP)
     OBJECTS = [identify_object(object_opt) for object_opt in infos["objects"]]
-    LIGHTS = [Light(CAM_EYE-(CAM_LOOK_AT.normalize())*100, Color.fromHex('#FFFFFF'))]
+    
+    ambient_light_position = CAM_EYE - CAM_LOOK_AT.normalize() * 100
+    ambient_light_color = infos.get("ambient_light", (255, 255, 255))
+    ambient_light_color = Color.fromRGB(*ambient_light_color)
+    
+    LIGHTS = [Light(ambient_light_position, ambient_light_color)]
+    LIGHTS.extend([
+        Light(Point(*light["position"]), Color.fromRGB(*light["intensity"])) 
+        for light in infos.get("lights", [])
+    ])
     return Scene(CAMERA, OBJECTS, LIGHTS, bg_color = BG_COLOR)
