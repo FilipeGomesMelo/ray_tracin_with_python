@@ -72,8 +72,10 @@ def build_scene(infos: dict) -> Scene:
             CAM_FOCAL_DISTANCE, CAM_EYE, CAM_LOOK_AT, CAM_UP)
     OBJECTS = [identify_object(object_opt) for object_opt in infos["objects"]]
     
+    AMBIENT_COLOR = Color.fromRGB(*infos["ambient_light"])
+
     LIGHTS = [
         Light(Point(*light["position"]), Color.fromRGB(*light["intensity"])) 
         for light in infos.get("lights", [])
     ]
-    return Scene(CAMERA, OBJECTS, LIGHTS, bg_color = BG_COLOR)
+    return Scene(CAMERA, OBJECTS, LIGHTS, AMBIENT_COLOR, bg_color = BG_COLOR)

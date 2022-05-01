@@ -7,11 +7,17 @@ class Scene:
     Has a camera, a list of objects, a width and a height
     """
     def __init__(
-            self, camera: Camera, objects: list[Object3D], lights: Light[Light], bg_color: Color=Color()
+            self,
+            camera: Camera,
+            objects: list[Object3D],
+            lights: Light[Light],
+            ambient_color: Color=Color.fromHex("#FFFFFF"),
+            bg_color: Color=Color()
         ) -> None:
         self.camera = camera
         self.objects = objects
         self.lights = lights
+        self.ambient_color = ambient_color
         self.width = camera.h_res
         self.height = camera.v_res
         self.bg_color = bg_color
