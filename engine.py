@@ -41,7 +41,7 @@ class RenderEngine:
     
     def rayTrace(self, ray: Ray, scene: Scene, depth=0) -> Color:
         """Traces the ray and finds the color for it"""
-        color = Color()
+        color: Color = Color()
         
         # Finding the nearest object hit by the ray in the scene
         distance_hit, object_hit = self.find_nearest(ray, scene)
@@ -123,7 +123,7 @@ class RenderEngine:
             # Diffuse shading (lambert)
             color += (
                 (obj_color.kronProduct(light.color))
-                * material.diffuse 
+                * material.diffuse
                 * max(normal ^ to_light.direction, 0)
             )
             # Specular shading (Phong)
