@@ -10,7 +10,7 @@ class Scene:
             self,
             camera: Camera,
             objects: list[Object3D],
-            lights: Light[Light],
+            lights: list[Light],
             ambient_color: Color=Color.fromHex("#FFFFFF"),
             bg_color: Color=Color()
         ) -> None:
