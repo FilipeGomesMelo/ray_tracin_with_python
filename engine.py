@@ -108,7 +108,7 @@ class RenderEngine:
     def color_at(self, object_hit: Object3D, hit_pos: Point, normal: Vector3, scene: Scene) -> Color:
         material = object_hit.material
         obj_color = material.color_at(hit_pos)
-        color = material.ambient * (obj_color.kronProduct(scene.ambient_color))
+        color: Color = material.ambient * (obj_color.kronProduct(scene.ambient_color))
         phong_coefficient = material.phong
         to_camera = (scene.camera.eye - hit_pos).normalize()
         

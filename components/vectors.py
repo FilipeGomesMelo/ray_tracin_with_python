@@ -11,7 +11,7 @@ class Vector3:
     def __str__(self) -> str:
         return f'({self.x}, {self.y}, {self.z})'
 
-    def kronProduct(self, other: Vector3) -> float:
+    def kronProduct(self, other: Vector3) -> Vector3:
         """Returns the Kronecker product between self Vector and another Vector3"""
         assert isinstance(other, Vector3)
         return self.__class__((self.x * other.x), (self.y * other.y), (self.z * other.z))
@@ -92,7 +92,7 @@ class Color(Vector3):
     def fromRGB(cls, r=0, g=0, b=0) -> Color:
         return cls(r / 255, g / 255, b / 255)
     
-    def toRGB(self):
+    def toRGB(self) -> "tuple[int, int, int]":
         return (self*255/max(*self, 1))
 
 class Point(Vector3):
