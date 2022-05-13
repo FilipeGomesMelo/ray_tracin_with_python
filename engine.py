@@ -4,7 +4,6 @@ from components import Vector3, Color, Point, Ray, Object3D, Image, Scene
 class RenderEngine:
     """Renders 3D objects into a 2D image using ray tracing"""
 
-    MAX_DEPTH = 5
     MIN_DISPLACE = 0.001
 
     def render(self, scene: Scene, show_progess: bool = False) -> Image:
@@ -51,14 +50,21 @@ class RenderEngine:
         hit_pos = ray.origin + ray.direction * distance_hit
         hit_normal = object_hit.normal(hit_pos)
         color += self.color_at(object_hit, hit_pos, hit_normal, scene)
-        if depth < self.MAX_DEPTH:
+        if depth < scene.max_depth:
             material_hit = object_hit.material
             # Checks if object is reflective
             if material_hit.reflection > 0:
+                normal = hit_normal
+                omega = -ray.direction
+                # Checks if ray is leaving the object, is so, invert normal and coefficient (air coefficient is 1)
+                if normal ^ omega < 0:
+                    relative_refraction = 1/material_hit.refraction
+                    normal = -hit_normal
+
                 # Note to self: we might want to do this as a object3D method that returns
                 # the reflected ray or None if the ray does not reflect
-                new_ray_pos = hit_pos + hit_normal * self.MIN_DISPLACE
-                new_ray_dir = ray.direction - 2 * ray.direction.dotProduct(hit_normal) * hit_normal
+                new_ray_pos = hit_pos + normal * self.MIN_DISPLACE
+                new_ray_dir = ray.direction - 2 * ray.direction.dotProduct(normal) * normal
                 new_ray = Ray(new_ray_pos, new_ray_dir)
                 # Attenuating the reflected color by reflection coefficient
                 color += self.rayTrace(new_ray, scene, depth+1) * material_hit.reflection
@@ -88,7 +94,18 @@ class RenderEngine:
                     new_ray = Ray(new_ray_pos, new_ray_dir)
                     # Attenuating the ray color by transmission coefficient
                     color += self.rayTrace(new_ray, scene, depth+1) * material_hit.transmission
-                
+                else:
+                    # Note to self: This part might be a little weird
+                    # when we have total refraction we do generate a ray,
+                    # but that ray goes in the same direction it would go if it was a reflected ray,
+                    # but we use the transmission index and not the reflection index.
+                    # there might be a cleaner way of doing this
+                    new_ray_pos = hit_pos + normal * self.MIN_DISPLACE
+                    new_ray_dir = ray.direction - 2 * ray.direction.dotProduct(normal) * normal
+                    new_ray = Ray(new_ray_pos, new_ray_dir)
+                    # Attenuating the reflected color by reflection coefficient
+                    color += self.rayTrace(new_ray, scene, depth+1) * material_hit.transmission
+                        
         return color
     
     def find_nearest(self, ray: Ray, scene: Scene) -> "tuple[float | None, Object3D | None]":

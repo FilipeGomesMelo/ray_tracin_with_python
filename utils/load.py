@@ -9,7 +9,18 @@ def load_from_json(file_path: str) -> dict:
 
     with open(file_path) as file:
         infos = json.load(file)
-    
+    ambient_light = (255, 255, 255)
+    try:
+        ambient_light = tuple(infos["ambient_light"])
+    except:
+        pass
+
+    lights = list()
+    try:
+        lights = infos["lights"]
+    except:
+        pass
+
     return {
         "cam_width": infos["h_res"],
         "cam_height": infos["v_res"],
@@ -20,8 +31,8 @@ def load_from_json(file_path: str) -> dict:
         "cam_up": tuple(infos["up"]),
         "bg_color": tuple(infos["background_color"]),
         "objects": infos["objects"],
-        "ambient_light": tuple(infos["ambient_light"]),
-        "lights": infos["lights"]
+        "ambient_light": ambient_light,
+        "lights": lights
     }
 
 def identify_object(object_opt: dict) -> Object3D:
@@ -30,12 +41,15 @@ def identify_object(object_opt: dict) -> Object3D:
     ambient: float = object_opt.get("ka", 0.05)
     diffuse: float = object_opt.get("kd", 1)
     specular: float = object_opt.get("ks", 1)
-    reflection: float = 0.5
     phong: float =  object_opt.get("exp", 50)
+    reflection: float = object_opt.get("kr", 0.5)
+    trasmission: float = object_opt.get("kt", 0)
+    index_of_refraction: float = object_opt.get("index_of_refraction", 1)
 
     color = Color.fromRGB(*object_opt["color"])
     material = Material(color, ambient, diffuse, 
-                        specular, reflection, phong)
+                        specular, reflection, phong, 
+                        trasmission, index_of_refraction)
 
     if "sphere" in object_opt:
         sphere_options = object_opt["sphere"]
@@ -78,4 +92,8 @@ def build_scene(infos: dict) -> Scene:
         Light(Point(*light["position"]), Color.fromRGB(*light["intensity"])) 
         for light in infos.get("lights", [])
     ]
+
+    if len(LIGHTS) == 0:
+        LIGHTS.append(Light(CAM_EYE, Color.fromHex("#FFFFFF")))
+
     return Scene(CAMERA, OBJECTS, LIGHTS, AMBIENT_COLOR, bg_color = BG_COLOR)
