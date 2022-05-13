@@ -9,18 +9,7 @@ def load_from_json(file_path: str) -> dict:
 
     with open(file_path) as file:
         infos = json.load(file)
-    ambient_light = (255, 255, 255)
-    try:
-        ambient_light = tuple(infos["ambient_light"])
-    except:
-        pass
-
-    lights = list()
-    try:
-        lights = infos["lights"]
-    except:
-        pass
-
+    
     return {
         "cam_width": infos["h_res"],
         "cam_height": infos["v_res"],
@@ -31,8 +20,9 @@ def load_from_json(file_path: str) -> dict:
         "cam_up": tuple(infos["up"]),
         "bg_color": tuple(infos["background_color"]),
         "objects": infos["objects"],
-        "ambient_light": ambient_light,
-        "lights": lights
+        "ambient_light": tuple(infos.get("ambient_light", (255, 255, 255))),
+        "lights": infos.get("lights", []),
+        "max_depth": infos.get("max_depth", 5)
     }
 
 def identify_object(object_opt: dict) -> Object3D:
@@ -95,5 +85,5 @@ def build_scene(infos: dict) -> Scene:
 
     if len(LIGHTS) == 0:
         LIGHTS.append(Light(CAM_EYE, Color.fromHex("#FFFFFF")))
-
-    return Scene(CAMERA, OBJECTS, LIGHTS, AMBIENT_COLOR, bg_color = BG_COLOR)
+    MAX_DEPTH = infos.get("max_depth", 5)
+    return Scene(CAMERA, OBJECTS, LIGHTS, AMBIENT_COLOR, bg_color = BG_COLOR, max_depth=MAX_DEPTH)

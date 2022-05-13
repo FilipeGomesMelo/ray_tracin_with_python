@@ -22,4 +22,4 @@ class Scene:
         self.width = camera.h_res
         self.height = camera.v_res
         self.bg_color = bg_color
-        self.max_depth = max_depth-1
+        self.max_depth = max_depth
