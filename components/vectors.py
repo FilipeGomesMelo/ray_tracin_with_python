@@ -13,17 +13,17 @@ class Vector3:
 
     def kronProduct(self, other: Vector3) -> Vector3:
         """Returns the Kronecker product between self Vector and another Vector3"""
-        assert isinstance(other, Vector3)
+        assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__((self.x * other.x), (self.y * other.y), (self.z * other.z))
     
     def dotProduct(self, other: Vector3) -> float:
         """Returns the dot product between self Vector and another Vector3"""
-        assert isinstance(other, Vector3)
+        assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
     
     def crossProduct(self, other: Vector3) -> Vector3:
         """Returns the cross product between self Vector and another Vector3"""
-        assert isinstance(other, Vector3)
+        assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__(
             self.y*other.z - self.z*other.y,
             self.z*other.x - self.x*other.z,
@@ -40,12 +40,12 @@ class Vector3:
     
     def __add__(self, other: Vector3) -> Vector3:
         """Returns the sum of the two Vectors"""
-        assert isinstance(other, Vector3)
+        assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__(self.x + other.x, self.y + other.y, self.z + other.z)
     
     def __sub__(self, other: Vector3) -> Vector3:
         """Returns the subtraction of the two Vectors"""
-        assert isinstance(other, Vector3)
+        assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__(self.x - other.x, self.y - other.y, self.z - other.z)
     
     def __neg__(self):
@@ -54,12 +54,12 @@ class Vector3:
 
     def __xor__(self, other: Vector3) -> float:
         """Returns the dot product between the two vectors"""
-        assert isinstance(other, Vector3)
+        assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.dotProduct(other)
     
     def __mul__(self, other: float) -> Vector3:
         """Multiplication with scalar value"""
-        assert not isinstance(other, Vector3)
+        assert not isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__(self.x * other, self.y * other, self.z * other)
     
     def __rmul__(self, other: float) -> Vector3:
@@ -68,16 +68,21 @@ class Vector3:
     
     def __eq__(self, other: Vector3) -> bool:
         """Equality between two vectors"""
-        assert isinstance(other, Vector3)
+        assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.x == other.x and self.y == other.y and self.z == other.z
     
     def __truediv__(self, other: float) -> Vector3:
         """Division by scalar value"""
-        assert not isinstance(other, Vector3)
+        assert not isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__(self.x / (other or 1), self.y / (other or 1), self.z / (other or 1))
     
     def __iter__(self):
         return iter((self.x, self.y, self.z))
+
+    def __floordiv__(self, other: float) -> Vector3:
+        """Division by scalar value"""
+        assert not isinstance(other, Vector3) or issubclass(other, Vector3)
+        return self.__class__(self.x // (other or 1), self.y // (other or 1), self.z // (other or 1))
 
 class Color(Vector3):
     """Stores colors as RGB triplets, based of Vector3"""
@@ -94,9 +99,9 @@ class Color(Vector3):
         """Creates Color from RGB"""
         return cls(r / 255, g / 255, b / 255)
     
-    def toRGB(self) -> "tuple[int, int, int]":
+    def toRGB(self) -> Color:
         """Returns tuple in 255 RGB form with normalization"""
-        return (self*255/max(*self, 1))
+        return (self*255)//max(*self, 1)
 
 class Point(Vector3):
     """Point stores coordinates of a point in 3D space, based on Vector"""

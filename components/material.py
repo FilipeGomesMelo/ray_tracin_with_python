@@ -4,7 +4,8 @@ class Material:
     """Material has color and properties that define how light interacts with it"""
     
     def __init__(self, color=Color.fromHex('#FFFFFF'), ambient=0.05, 
-                 diffuse=1.0, specular=1.0, reflection=0.5, phong=50, transmission=0, refraction=1.52) -> None:
+                 diffuse=1.0, specular=1.0, reflection=0.5, phong=50.,
+                 transmission=0., refraction=1.52) -> None:
         self.color = color
         self.ambient = ambient
         self.diffuse = diffuse

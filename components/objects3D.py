@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from components import Material, Vector3, Point, Ray
 import math
 
@@ -16,11 +17,13 @@ class Object3D:
     def __init__(self, material: Material) -> None:
         self.material = material
     
+    @abstractmethod
     def intersects(self, ray: Ray) -> "float | None":
         """Checks if a ray intersects the Object3D.
         Returns distance to the closest intersection if the ray does intersect, returns None if it does not"""
         pass
 
+    @abstractmethod
     def normal(self, surface_point: Point) -> Vector3:
         """Returns the normal of the Object3D surface in a given point"""
         pass
@@ -33,9 +36,9 @@ class Sphere(Object3D):
         self.radius = radius
     
     def __str__(self) -> str:
-        return f'''-Sphere:
-        \tCenter: {self.center}
-        \tRadius: {self.radius}'''
+        return '-Sphere:' \
+        f'\tCenter: {self.center}' \
+        f'\tRadius: {self.radius}'
 
     def intersects(self, ray: Ray) -> "float | None":
         """Checks if a ray intersects the sphere.
@@ -74,9 +77,9 @@ class Plane(Object3D):
         self._normal = normal.normalize()
     
     def __str__(self) -> str:
-        return f'''-Plane:
-        \ point: {self.point}
-        \ normal: {self._normal}'''
+        return f'-Plane:' \
+        f'\t point: {self.point}' \
+        f'\t normal: {self._normal}'
 
 
     def intersects(self, ray: Ray) -> "float | None":
@@ -89,6 +92,58 @@ class Plane(Object3D):
         return None
     
     # surface_point is only here so we can interact with the plane the same way we would with a sphere
-    def normal(self, surface_point: Point=None) -> Vector3:
+    def normal(self, surface_point: 'Point | None' = None) -> Vector3:
+        """Returns surface normal, same normal for any surface_point"""
+        return self._normal
+
+
+class Triangle(Object3D):
+    """3D triangle shape, defined by tree points"""
+    def __init__(self, vertex_0: Point, vertex_1: Point, vertex_2: Point, material: Material) -> None:
+        """
+        Point is any point belonging to the plane
+        normal is a Vector3 with the direction of the plane's normal
+        Material defines how it interacts with light
+        """
+        super().__init__(material)
+        self.vertex_0 = vertex_0
+        self.vertex_1 = vertex_1
+        self.vertex_2 = vertex_2
+        edge1 = self.vertex_1 - self.vertex_0
+        edge2 = self.vertex_2 - self.vertex_0
+        self._normal = edge1.crossProduct(edge2).normalize()
+    
+    def __str__(self) -> str:
+        return '-Triangle:' \
+        f'\t vertex_0: {self.vertex_0}' \
+        f'\t vertex_1: {self.vertex_1}' \
+        f'\t vertex_2: {self.vertex_2}'
+
+
+    def intersects(self, ray: Ray) -> "float | None":
+        """Checks if a ray intersects the triangle. Returns distance to intersection if the ray does intersect, returns None if it does not"""
+        EPSILON = 0.001
+        edge1 = self.vertex_1 - self.vertex_0
+        edge2 = self.vertex_2 - self.vertex_0
+        h = ray.direction.crossProduct(edge2)
+        a = edge1.dotProduct(h)
+        if -EPSILON < a < EPSILON:
+            return None
+        f = 1/a
+        s = ray.origin - self.vertex_0
+        u = f * s.dotProduct(h)
+        if u < 0.0 or u > 1.0:
+            return None
+        q = s.crossProduct(edge1)
+        v = f * ray.direction.dotProduct(q)
+        if v < 0.0 or u + v > 1.0:
+            return None
+        t = f * edge2.dotProduct(q)
+        if (t > EPSILON):
+            return t
+                
+        return None
+    
+    def normal(self, surface_point: 'Point | None' = None) -> Vector3:
         """Returns surface normal, same normal for any surface_point"""
         return self._normal

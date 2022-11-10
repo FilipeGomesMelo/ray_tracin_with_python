@@ -29,7 +29,7 @@ def generate_3d_image(json_path: str = "", image_out: str = "out.ppm",
     scene = build_scene(infos)
 
     engine = RenderEngine()
-    image = engine.render(scene, True)
+    image = engine.render(scene, True, 30)
     if return_image: return image
 
     with open(image_path, 'w') as img_file:

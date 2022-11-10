@@ -1,12 +1,14 @@
 from math import sqrt
 from components import Vector3, Color, Point, Ray, Object3D, Image, Scene
 
+from random import random
+
 class RenderEngine:
     """Renders 3D objects into a 2D image using ray tracing"""
 
     MIN_DISPLACE = 0.001
 
-    def render(self, scene: Scene, show_progess: bool = False) -> Image:
+    def render(self, scene: Scene, show_progress: bool = False, anti_aliasing: int = 0) -> Image:
         width = scene.width
         height = scene.height
         
@@ -27,15 +29,27 @@ class RenderEngine:
         image_center = z_vector + pixel_size * (y_vector - x_vector)
 
         pixels = Image(width, height)
-
-        for y in range(0, height):
-            for x in range(0, width):
-                position = image_center + pixel_size * (x * u - y * v)
-                ray_direction = (position - cam_focus).normalize()
-                ray = Ray(cam_focus, ray_direction)
-                pixels.set_pixel(x, y, self.rayTrace(ray, scene))
-            if show_progess:
-                print(f"{(y / height) * 100:.2f}%", end='\r')
+        if anti_aliasing:
+            for y in range(0, height):
+                for x in range(0, width):
+                    ray_color = Color()
+                    for _ in range(0, anti_aliasing):
+                        position = image_center + pixel_size * ((x + random()) * u - (y + random()) * v)
+                        ray_direction = (position - cam_focus).normalize()
+                        ray = Ray(cam_focus, ray_direction)
+                        ray_color += self.rayTrace(ray, scene)
+                    pixels.set_pixel(x, y, ray_color/anti_aliasing)
+                if show_progress:
+                    print(f"{(y / height) * 100:.2f}%", end='\r')
+        else:
+            for y in range(0, height):
+                for x in range(0, width):
+                    position = image_center + pixel_size * (x * u - y * v)
+                    ray_direction = (position - cam_focus).normalize()
+                    ray = Ray(cam_focus, ray_direction)
+                    pixels.set_pixel(x, y, self.rayTrace(ray, scene))
+                if show_progress:
+                    print(f"{(y / height) * 100:.2f}%", end='\r')
         return pixels
     
     def rayTrace(self, ray: Ray, scene: Scene, depth=0) -> Color:

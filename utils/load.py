@@ -1,4 +1,4 @@
-from components import (Vector3, Color, Point, Sphere, Plane, 
+from components import (Vector3, Color, Point, Sphere, Plane, Triangle,
     Light, ChequeredMaterial, Material, Scene, Camera, Object3D)
 import json
 
@@ -25,7 +25,7 @@ def load_from_json(file_path: str) -> dict:
         "max_depth": infos.get("max_depth", 5)
     }
 
-def identify_object(object_opt: dict) -> Object3D:
+def identify_object(object_opt: dict) -> "Object3D | None":
     new_object = None
     
     ambient: float = object_opt.get("ka", 0.05)
@@ -33,13 +33,13 @@ def identify_object(object_opt: dict) -> Object3D:
     specular: float = object_opt.get("ks", 1)
     phong: float =  object_opt.get("exp", 50)
     reflection: float = object_opt.get("kr", 0.5)
-    trasmission: float = object_opt.get("kt", 0)
+    transmission: float = object_opt.get("kt", 0)
     index_of_refraction: float = object_opt.get("index_of_refraction", 1)
 
     color = Color.fromRGB(*object_opt["color"])
     material = Material(color, ambient, diffuse, 
                         specular, reflection, phong, 
-                        trasmission, index_of_refraction)
+                        transmission, index_of_refraction)
 
     if "sphere" in object_opt:
         sphere_options = object_opt["sphere"]
@@ -51,6 +51,12 @@ def identify_object(object_opt: dict) -> Object3D:
         sample = plane_options["sample"]
         normal = plane_options["normal"]
         new_object = Plane(Point(*sample), Vector3(*normal), material)
+    elif "triangle" in object_opt:
+        triangle_options = object_opt["triangle"]
+        vertex_0 = Point(*triangle_options[0])
+        vertex_1 = Point(*triangle_options[1])
+        vertex_2 = Point(*triangle_options[2])
+        new_object = Triangle(vertex_0, vertex_1, vertex_2, material)
     return new_object
 
 def build_scene(infos: dict) -> Scene:
@@ -66,7 +72,7 @@ def build_scene(infos: dict) -> Scene:
     # height = width / aspect_ratio
 
     CAM_FOCAL_DISTANCE = infos["cam_focal_distance"]
-    CAM_LOOK_AT = Vector3(*infos["cam_look_at"])
+    CAM_LOOK_AT = Point(*infos["cam_look_at"])
     BG_COLOR = Color.fromRGB(*infos["bg_color"])
     CAM_SQUARE_SIZE = infos["cam_square_size"]
     CAM_EYE = Point(*infos["cam_eye"])
