@@ -22,8 +22,8 @@ class TestVector(unittest.TestCase):
         result = self.v1 * 2
         self.assertEqual(result, Vector3(2, -4, -4))
 
-    def testCrossProduct(self):
-        result = self.v1.crossProduct(self.v2)
+    def testcross_product(self):
+        result = self.v1.cross_product(self.v2)
         self.assertEqual(result, Vector3(-6., -15., 12))
 
     
@@ -35,8 +35,8 @@ class TestVector(unittest.TestCase):
         result = -self.v1
         self.assertEqual(result, Vector3(-1, 2, 2))
     
-    def testDotProduct(self):
-        result = self.v1 ^ self.v2, self.v1.dotProduct(self.v2)
+    def testdot_product(self):
+        result = self.v1 ^ self.v2, self.v1.dot_product(self.v2)
         self.assertEqual(result, (-27, -27))
     
     def testNormalize(self):

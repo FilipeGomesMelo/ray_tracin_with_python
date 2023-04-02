@@ -1,5 +1,5 @@
 from components import (Vector3, Color, Point, Sphere, Plane, Triangle,
-    Light, ChequeredMaterial, Material, Scene, Camera, Object3D)
+    Light, ChequeredMaterial, Material, Scene, Camera, Object3D, TriangleMesh)
 import json
 
 def load_from_json(file_path: str) -> dict:
@@ -36,7 +36,7 @@ def identify_object(object_opt: dict) -> "Object3D | None":
     transmission: float = object_opt.get("kt", 0)
     index_of_refraction: float = object_opt.get("index_of_refraction", 1)
 
-    color = Color.fromRGB(*object_opt["color"])
+    color = Color.from_RGB(*object_opt["color"])
     material = Material(color, ambient, diffuse, 
                         specular, reflection, phong, 
                         transmission, index_of_refraction)
@@ -57,6 +57,11 @@ def identify_object(object_opt: dict) -> "Object3D | None":
         vertex_1 = Point(*triangle_options[1])
         vertex_2 = Point(*triangle_options[2])
         new_object = Triangle(vertex_0, vertex_1, vertex_2, material)
+    elif "triangle_mesh" in object_opt:
+        triangle_mesh_options = object_opt["triangle_mesh"]
+        vertices = [Point(a, b, c) for a, b, c in triangle_mesh_options["verteces"]]
+        triangles = [(a - 1, b - 1, c - 1) for a, b, c in triangle_mesh_options["triangle_indexes"]]
+        new_object = TriangleMesh(vertices, triangles, material)
     return new_object
 
 def build_scene(infos: dict) -> Scene:
@@ -73,7 +78,7 @@ def build_scene(infos: dict) -> Scene:
 
     CAM_FOCAL_DISTANCE = infos["cam_focal_distance"]
     CAM_LOOK_AT = Point(*infos["cam_look_at"])
-    BG_COLOR = Color.fromRGB(*infos["bg_color"])
+    BG_COLOR = Color.from_RGB(*infos["bg_color"])
     CAM_SQUARE_SIZE = infos["cam_square_size"]
     CAM_EYE = Point(*infos["cam_eye"])
     CAM_UP = Vector3(*infos["cam_up"])
@@ -82,14 +87,14 @@ def build_scene(infos: dict) -> Scene:
             CAM_FOCAL_DISTANCE, CAM_EYE, CAM_LOOK_AT, CAM_UP)
     OBJECTS = [identify_object(object_opt) for object_opt in infos["objects"]]
     
-    AMBIENT_COLOR = Color.fromRGB(*infos["ambient_light"])
+    AMBIENT_COLOR = Color.from_RGB(*infos["ambient_light"])
 
     LIGHTS = [
-        Light(Point(*light["position"]), Color.fromRGB(*light["intensity"])) 
+        Light(Point(*light["position"]), Color.from_RGB(*light["intensity"])) 
         for light in infos.get("lights", [])
     ]
 
     if len(LIGHTS) == 0:
-        LIGHTS.append(Light(CAM_EYE, Color.fromHex("#FFFFFF")))
+        LIGHTS.append(Light(CAM_EYE, Color.from_hex("#FFFFFF")))
     MAX_DEPTH = infos.get("max_depth", 5)
     return Scene(CAMERA, OBJECTS, LIGHTS, AMBIENT_COLOR, bg_color = BG_COLOR, max_depth=MAX_DEPTH)

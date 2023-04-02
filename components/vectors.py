@@ -11,17 +11,17 @@ class Vector3:
     def __str__(self) -> str:
         return f'({self.x}, {self.y}, {self.z})'
 
-    def kronProduct(self, other: Vector3) -> Vector3:
+    def kron_product(self, other: Vector3) -> Vector3:
         """Returns the Kronecker product between self Vector and another Vector3"""
         assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__((self.x * other.x), (self.y * other.y), (self.z * other.z))
     
-    def dotProduct(self, other: Vector3) -> float:
+    def dot_product(self, other: Vector3) -> float:
         """Returns the dot product between self Vector and another Vector3"""
         assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
     
-    def crossProduct(self, other: Vector3) -> Vector3:
+    def cross_product(self, other: Vector3) -> Vector3:
         """Returns the cross product between self Vector and another Vector3"""
         assert isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__(
@@ -32,7 +32,7 @@ class Vector3:
     
     def magnitude(self) -> float:
         """Returns the magnitude of the Vector"""
-        return math.sqrt(self.dotProduct(self))
+        return math.sqrt(self.dot_product(self))
     
     def normalize(self) -> Vector3:
         """Returns the normalized Vector"""
@@ -55,7 +55,7 @@ class Vector3:
     def __xor__(self, other: Vector3) -> float:
         """Returns the dot product between the two vectors"""
         assert isinstance(other, Vector3) or issubclass(other, Vector3)
-        return self.dotProduct(other)
+        return self.dot_product(other)
     
     def __mul__(self, other: float) -> Vector3:
         """Multiplication with scalar value"""
@@ -87,7 +87,7 @@ class Vector3:
 class Color(Vector3):
     """Stores colors as RGB triplets, based of Vector3"""
     @classmethod
-    def fromHex(cls, hex="#000000") -> Color:
+    def from_hex(cls, hex="#000000") -> Color:
         """Creates Color from hexcode"""
         x = int(hex[1:3], 16) / 255.0
         y = int(hex[3:5], 16) / 255.0
@@ -95,11 +95,11 @@ class Color(Vector3):
         return cls(x, y, z)
     
     @classmethod
-    def fromRGB(cls, r=0, g=0, b=0) -> Color:
+    def from_RGB(cls, r=0, g=0, b=0) -> Color:
         """Creates Color from RGB"""
         return cls(r / 255, g / 255, b / 255)
     
-    def toRGB(self) -> Color:
+    def to_RGB(self) -> Color:
         """Returns tuple in 255 RGB form with normalization"""
         return (self*255)//max(*self, 1)
 

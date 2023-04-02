@@ -23,7 +23,7 @@ class Image:
             for color in row:
                 img_file.write(
                     '{} {} {} '.format(
-                        *color.toRGB()
+                        *color.to_RGB()
                     )
                 )
             img_file.write('\n')

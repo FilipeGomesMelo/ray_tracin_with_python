@@ -11,7 +11,7 @@ class Scene:
             camera: Camera,
             objects: list[Object3D],
             lights: list[Light],
-            ambient_color: Color=Color.fromHex("#FFFFFF"),
+            ambient_color: Color=Color.from_hex("#FFFFFF"),
             bg_color: Color=Color(),
             max_depth: float=5 
         ) -> None:

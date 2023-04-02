@@ -3,7 +3,7 @@ from components import Color, Point
 class Light:
     """Point light source of a certain color"""
 
-    def __init__(self, position: Point, color=Color.fromHex('#FFFFFF')) -> None:
+    def __init__(self, position: Point, color=Color.from_hex('#FFFFFF')) -> None:
         self.position = position
         self.color = color
     

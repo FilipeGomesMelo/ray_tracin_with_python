@@ -20,8 +20,8 @@ class RenderEngine:
         up = camera.up
 
         w = (cam_focus - cam_look_at).normalize()
-        u = (up.crossProduct(w)).normalize()
-        v = w.crossProduct(u)
+        u = (up.cross_product(w)).normalize()
+        v = w.cross_product(u)
 
         z_vector = cam_focus - cam_focal_distance * w
         y_vector = (height / 2) * v
@@ -57,12 +57,12 @@ class RenderEngine:
         color: Color = Color()
         
         # Finding the nearest object hit by the ray in the scene
-        distance_hit, object_hit = self.find_nearest(ray, scene)
+        distance_hit, normal_hit, object_hit = self.find_nearest(ray, scene)
         if object_hit is None:
             return scene.bg_color
         
         hit_pos = ray.origin + ray.direction * distance_hit
-        hit_normal = object_hit.normal(hit_pos)
+        hit_normal = normal_hit
         color += self.color_at(object_hit, hit_pos, hit_normal, scene)
         if depth < scene.max_depth:
             material_hit = object_hit.material
@@ -78,7 +78,7 @@ class RenderEngine:
                 # Note to self: we might want to do this as a object3D method that returns
                 # the reflected ray or None if the ray does not reflect
                 new_ray_pos = hit_pos + normal * self.MIN_DISPLACE
-                new_ray_dir = ray.direction - 2 * ray.direction.dotProduct(normal) * normal
+                new_ray_dir = ray.direction - 2 * ray.direction.dot_product(normal) * normal
                 new_ray = Ray(new_ray_pos, new_ray_dir)
                 # Attenuating the reflected color by reflection coefficient
                 color += self.rayTrace(new_ray, scene, depth+1) * material_hit.reflection
@@ -115,45 +115,47 @@ class RenderEngine:
                     # but we use the transmission index and not the reflection index.
                     # there might be a cleaner way of doing this
                     new_ray_pos = hit_pos + normal * self.MIN_DISPLACE
-                    new_ray_dir = ray.direction - 2 * ray.direction.dotProduct(normal) * normal
+                    new_ray_dir = ray.direction - 2 * ray.direction.dot_product(normal) * normal
                     new_ray = Ray(new_ray_pos, new_ray_dir)
                     # Attenuating the reflected color by reflection coefficient
                     color += self.rayTrace(new_ray, scene, depth+1) * material_hit.transmission
                         
         return color
     
-    def find_nearest(self, ray: Ray, scene: Scene) -> "tuple[float | None, Object3D | None]":
+    def find_nearest(self, ray: Ray, scene: Scene) -> "tuple[float, Vector3, Object3D] | tuple[None, None, None]":
         """Finds the nearest point of intersection of a ray with any object in a scene
         Returns a tuple of distance to the hit point and the object that was hit
         """
         distance_min = None
         object_hit = None
+        hit_normal = None
         for obj in scene.objects:
-            distance = obj.intersects(ray)
+            distance, normal = obj.intersects(ray)
             if distance is not None and (object_hit is None or distance < distance_min):
                 distance_min = distance
+                hit_normal = normal
                 object_hit = obj
 
-        return (distance_min, object_hit)
+        return (distance_min, hit_normal, object_hit)
     
     def color_at(self, object_hit: Object3D, hit_pos: Point, normal: Vector3, scene: Scene) -> Color:
         material = object_hit.material
         obj_color = material.color_at(hit_pos)
-        color: Color = material.ambient * (obj_color.kronProduct(scene.ambient_color))
+        color: Color = material.ambient * (obj_color.kron_product(scene.ambient_color))
         phong_coefficient = material.phong
         to_camera = (scene.camera.eye - hit_pos).normalize()
         
         # Calculating lights
         for light in scene.lights:
             to_light = Ray(hit_pos, light.position - hit_pos)
-            distance_hit, object_hit = self.find_nearest(to_light, scene)
+            distance_hit, _, object_hit = self.find_nearest(to_light, scene)
 
-            if object_hit != None and 0 < distance_hit < to_light.direction ^ (light.position - hit_pos):
+            if distance_hit is not None and 0 < distance_hit < to_light.direction ^ (light.position - hit_pos):
                 continue
 
             # Diffuse shading (lambert)
             color += (
-                (obj_color.kronProduct(light.color))
+                (obj_color.kron_product(light.color))
                 * material.diffuse
                 * max(normal ^ to_light.direction, 0)
             )
