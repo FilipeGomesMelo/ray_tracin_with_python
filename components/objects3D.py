@@ -198,11 +198,12 @@ class TriangleMesh(Object3D):
             new_verticies.append(new_vertex)
         return TriangleMesh(new_verticies, self.list_triangles, self.material)
 
+
 class BezierCurve:
-    def __init__(self, control_points):
+    def __init__(self, control_points: list[Point]):
         self.control_points = control_points
 
-    def __call__(self, t) -> Point:
+    def __call__(self, t: float) -> Point:
         n = len(self.control_points) - 1
         point = Vector3()
         for i in range(n + 1):
@@ -221,7 +222,6 @@ class RevolutionSurface(Object3D):
         self.triangle_mesh = self.generate_mesh(resolution)
 
     def evaluate_point(self, u, v):
-        """Evaluate a point on the revolution surface at (u, v)"""
         """Evaluate a point on the revolution surface at (u, v)"""
         point_on_curve = self.bezier_curve(u)
 
