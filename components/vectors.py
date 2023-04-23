@@ -84,6 +84,24 @@ class Vector3:
         assert not isinstance(other, Vector3) or issubclass(other, Vector3)
         return self.__class__(self.x // (other or 1), self.y // (other or 1), self.z // (other or 1))
 
+    def transform(self, matrix):
+        """Transform this vector by a 3x3 or 4x4 matrix."""
+        assert isinstance(matrix, list) \
+            and (len(matrix) == 3 or len(matrix) == 4) \
+            and all(len(row) == 3 or len(row) == 4 for row in matrix), "Invalid matrix"
+        if len(matrix) == 3:
+            for row in matrix:
+                row.append(0)
+            matrix.append([0,0,0,1])
+
+        x, y, z = self.x, self.y, self.z
+        w = 1.0
+        matrix = matrix[0] + matrix[1] + matrix[2] + matrix[3]
+        new_x = x * matrix[0] + y * matrix[1] + z * matrix[2] + w * matrix[3]
+        new_y = x * matrix[4] + y * matrix[5] + z * matrix[6] + w * matrix[7]
+        new_z = x * matrix[8] + y * matrix[9] + z * matrix[10] + w * matrix[11]
+        return Vector3(new_x, new_y, new_z)
+
 class Color(Vector3):
     """Stores colors as RGB triplets, based of Vector3"""
     @classmethod

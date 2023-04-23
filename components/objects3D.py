@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import abstractmethod
 from components import Material, Vector3, Point, Ray
 import math
@@ -27,6 +28,91 @@ class Object3D:
     def _get_normal(self) -> Vector3:
         """Returns the normal of the Object3D surface in a given point"""
         pass
+
+    @abstractmethod
+    def transform(self, matrix: list[list[float]]) -> Object3D:
+        """Returns the tranformed object using a 3x3 or 4x4 matrix"""
+        pass
+
+    def translate(self, vector: Vector3) -> Object3D:
+        """Returns the object tranlated by a vector"""
+        translation_matrix = [
+            [1, 0, 0, vector.x],
+            [0, 1, 0, vector.y],
+            [0, 0, 1, vector.z],
+            [0, 0, 0, 1],
+        ]
+        return self.transform(translation_matrix)
+
+    def rotate(self, vector: Vector3, angle: float, point: Point = Point(0, 0, 0)) -> Object3D:
+        """Return the object after being rotated by angle(degrees) around the axis defined by a point and a vector clockwise"""
+        # Convert angle from degrees to radians
+        angle = math.radians(angle)
+        
+        # Normalize the axis vector
+        axis = vector.normalize()
+        
+        # Calculate the rotation matrix
+        cos_a = math.cos(angle)
+        sin_a = math.sin(angle)
+        ux = axis.x
+        uy = axis.y
+        uz = axis.z
+        rot_matrix = [
+            [cos_a + ux**2*(1-cos_a), ux*uy*(1-cos_a) - uz*sin_a, ux*uz*(1-cos_a) + uy*sin_a, 0],
+            [uy*ux*(1-cos_a) + uz*sin_a, cos_a + uy**2*(1-cos_a), uy*uz*(1-cos_a) - ux*sin_a, 0],
+            [uz*ux*(1-cos_a) - uy*sin_a, uz*uy*(1-cos_a) + ux*sin_a, cos_a + uz**2*(1-cos_a), 0],
+            [0, 0, 0, 1]]
+
+        to_origin_matrix = [
+            [1, 0, 0, -point.x],
+            [0, 1, 0, -point.y],
+            [0, 0, 1, -point.z], 
+            [0, 0, 0, 1]]
+
+        back_from_origin_matrix = [
+            [1, 0, 0, point.x],
+            [0, 1, 0, point.y],
+            [0, 0, 1, point.z], 
+            [0, 0, 0, 1]]
+
+        def matrix_multiply(A, B):
+            m = len(A)
+            n = len(B[0])
+            product = []
+            for i in range(m):
+                row = []
+                for j in range(n):
+                    element = 0
+                    for k in range(len(B)):
+                        element += A[i][k] * B[k][j]
+                    row.append(element)
+                product.append(row)
+            return product
+
+        final_matrix = matrix_multiply(back_from_origin_matrix, matrix_multiply(rot_matrix, to_origin_matrix))
+
+        return self.transform(final_matrix)
+
+    def scale(self, vector: Vector3) -> Object3D:
+        distotion_matrix = [
+            [vector.x, 0, 0, 0],
+            [0, vector.y, 0, 0],
+            [0, 0, vector.z, 0],
+            [0, 0, 0, 1]
+        ]
+        return self.transform(distotion_matrix)
+
+    def reflect(self, point: Point, normal: Vector3) -> Object3D:
+        d = -(normal ^ point)
+        normal = normal
+        reflection_matrix = [
+            [1 - 2 * normal.x ** 2, 0 - 2 * normal.x * normal.y, 0 - 2 * normal.x * normal.z, -2 * d * normal.x],
+            [- 2 * normal.x * normal.y, 1 - 2 * normal.y **2, 0 - 2 * normal.y * normal.z, -2 * d * normal.y],
+            [0 - 2 * normal.x * normal.z, 0 - 2 * normal.z * normal.y, 1 - 2 * normal.z ** 2, -2 * d * normal.z],
+            [0, 0, 0, 1]
+        ]
+        return self.transform(reflection_matrix)
 
 class Sphere(Object3D):
     """3D sphere shape, has center, radius and material"""
@@ -65,6 +151,10 @@ class Sphere(Object3D):
         """Returns surface normal to the point on the sphere's surface"""
         return (surface_point-self.center).normalize()
 
+    def transform(self, matrix: list[list[float]]) -> Object3D:
+        new_center = self.center.transform(matrix)
+        return Sphere(new_center, self.radius, self.material)
+
 
 class Plane(Object3D):
     """3D plane shape, has point that belongs to the plane and a normal vector"""
@@ -83,7 +173,6 @@ class Plane(Object3D):
         f'\t point: {self.point}' \
         f'\t normal: {self.normal}'
 
-
     def intersects(self, ray: Ray) -> "tuple[float, Vector3] | tuple[None, None]":
         """Checks if a ray intersects the plane. Returns distance to intersection if the ray does intersect, returns None if it does not"""
         if abs(self.normal ^ ray.direction) >= 0.001:
@@ -98,6 +187,10 @@ class Plane(Object3D):
         """Returns surface normal, same normal for any surface_point"""
         return self.normal
 
+    def transform(self, matrix: list[list[float]]) -> Object3D:
+        new_point = self.point.transform(matrix)
+        new_normal = (self.normal + self.point).transform(matrix) - new_point
+        return Plane(new_point, new_normal, self.material)
 
 class Triangle(Object3D):
     """3D triangle shape, defined by tree points"""
@@ -150,6 +243,12 @@ class Triangle(Object3D):
         """Returns surface normal, same normal for any surface_point"""
         return self.normal
 
+    def transform(self, matrix: list[list[float]]) -> Object3D:
+        new_vertex_0 = self.vertex_0.transform(matrix)
+        new_vertex_1 = self.vertex_1.transform(matrix)
+        new_vertex_2 = self.vertex_2.transform(matrix)
+        return Triangle(new_vertex_0, new_vertex_1, new_vertex_2, self.material)
+
 class TriangleMesh(Object3D):
     def __init__(self, list_vertices: list[Point], list_triangles: list[tuple[int, int, int]], material: Material) -> None:
         super().__init__(material)
@@ -175,3 +274,10 @@ class TriangleMesh(Object3D):
 
     def _get_normal(self, triangle: Triangle) -> Vector3:
         return triangle._get_normal()
+
+    def transform(self, matrix: list[list[float]]) -> Object3D:
+        new_verticies = []
+        for vertex in self.list_vertices:
+            new_vertex = Vector3(*vertex).transform(matrix)
+            new_verticies.append(new_vertex)
+        return TriangleMesh(new_verticies, self.list_triangles, self.material)
