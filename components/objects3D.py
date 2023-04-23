@@ -1,9 +1,9 @@
 from __future__ import annotations
 from abc import abstractmethod
-from components import Material, Vector3, Point, Ray
+from components import Material, Vector3, Point, Ray, LinearTransformationsMixin
 import math
 
-class Object3D:
+class Object3D(LinearTransformationsMixin):
     """Abstract class for 3D objects used in the Rendering Engine
     
     Requirements:
@@ -29,90 +29,6 @@ class Object3D:
         """Returns the normal of the Object3D surface in a given point"""
         pass
 
-    @abstractmethod
-    def transform(self, matrix: list[list[float]]) -> Object3D:
-        """Returns the tranformed object using a 3x3 or 4x4 matrix"""
-        pass
-
-    def translate(self, vector: Vector3) -> Object3D:
-        """Returns the object tranlated by a vector"""
-        translation_matrix = [
-            [1, 0, 0, vector.x],
-            [0, 1, 0, vector.y],
-            [0, 0, 1, vector.z],
-            [0, 0, 0, 1],
-        ]
-        return self.transform(translation_matrix)
-
-    def rotate(self, vector: Vector3, angle: float, point: Point = Point(0, 0, 0)) -> Object3D:
-        """Return the object after being rotated by angle(degrees) around the axis defined by a point and a vector clockwise"""
-        # Convert angle from degrees to radians
-        angle = math.radians(angle)
-        
-        # Normalize the axis vector
-        axis = vector.normalize()
-        
-        # Calculate the rotation matrix
-        cos_a = math.cos(angle)
-        sin_a = math.sin(angle)
-        ux = axis.x
-        uy = axis.y
-        uz = axis.z
-        rot_matrix = [
-            [cos_a + ux**2*(1-cos_a), ux*uy*(1-cos_a) - uz*sin_a, ux*uz*(1-cos_a) + uy*sin_a, 0],
-            [uy*ux*(1-cos_a) + uz*sin_a, cos_a + uy**2*(1-cos_a), uy*uz*(1-cos_a) - ux*sin_a, 0],
-            [uz*ux*(1-cos_a) - uy*sin_a, uz*uy*(1-cos_a) + ux*sin_a, cos_a + uz**2*(1-cos_a), 0],
-            [0, 0, 0, 1]]
-
-        to_origin_matrix = [
-            [1, 0, 0, -point.x],
-            [0, 1, 0, -point.y],
-            [0, 0, 1, -point.z], 
-            [0, 0, 0, 1]]
-
-        back_from_origin_matrix = [
-            [1, 0, 0, point.x],
-            [0, 1, 0, point.y],
-            [0, 0, 1, point.z], 
-            [0, 0, 0, 1]]
-
-        def matrix_multiply(A, B):
-            m = len(A)
-            n = len(B[0])
-            product = []
-            for i in range(m):
-                row = []
-                for j in range(n):
-                    element = 0
-                    for k in range(len(B)):
-                        element += A[i][k] * B[k][j]
-                    row.append(element)
-                product.append(row)
-            return product
-
-        final_matrix = matrix_multiply(back_from_origin_matrix, matrix_multiply(rot_matrix, to_origin_matrix))
-
-        return self.transform(final_matrix)
-
-    def scale(self, vector: Vector3) -> Object3D:
-        distotion_matrix = [
-            [vector.x, 0, 0, 0],
-            [0, vector.y, 0, 0],
-            [0, 0, vector.z, 0],
-            [0, 0, 0, 1]
-        ]
-        return self.transform(distotion_matrix)
-
-    def reflect(self, point: Point, normal: Vector3) -> Object3D:
-        d = -(normal ^ point)
-        normal = normal
-        reflection_matrix = [
-            [1 - 2 * normal.x ** 2, 0 - 2 * normal.x * normal.y, 0 - 2 * normal.x * normal.z, -2 * d * normal.x],
-            [- 2 * normal.x * normal.y, 1 - 2 * normal.y **2, 0 - 2 * normal.y * normal.z, -2 * d * normal.y],
-            [0 - 2 * normal.x * normal.z, 0 - 2 * normal.z * normal.y, 1 - 2 * normal.z ** 2, -2 * d * normal.z],
-            [0, 0, 0, 1]
-        ]
-        return self.transform(reflection_matrix)
 
 class Sphere(Object3D):
     """3D sphere shape, has center, radius and material"""
@@ -281,3 +197,66 @@ class TriangleMesh(Object3D):
             new_vertex = Vector3(*vertex).transform(matrix)
             new_verticies.append(new_vertex)
         return TriangleMesh(new_verticies, self.list_triangles, self.material)
+
+class BezierCurve:
+    def __init__(self, control_points):
+        self.control_points = control_points
+
+    def __call__(self, t) -> Point:
+        n = len(self.control_points) - 1
+        point = Vector3()
+        for i in range(n + 1):
+            binomial = math.comb(n, i)
+            basis = binomial * (1 - t) ** (n - i) * t ** i
+            point += basis * self.control_points[i]
+        return point
+
+
+class RevolutionSurface(Object3D):
+    def __init__(self, control_points: list[Point], resolution: int, point: Point, vector: Vector3, material: Material):
+        super().__init__(material)
+        self.bezier_curve = BezierCurve(control_points)
+        self.point = point
+        self.vector = vector
+        self.triangle_mesh = self.generate_mesh(resolution)
+
+    def evaluate_point(self, u, v):
+        """Evaluate a point on the revolution surface at (u, v)"""
+        """Evaluate a point on the revolution surface at (u, v)"""
+        point_on_curve = self.bezier_curve(u)
+
+        # Rotate the point around the line
+        theta = math.degrees(2 * math.pi * v)
+        point_on_curve.rotate(self.point, self.vector, theta)
+
+        return point_on_curve.rotate(self.point, self.vector, theta)
+
+    def generate_mesh(self, resolution):
+        """Generate a triangle mesh for the revolution surface"""
+        vertices = []
+        indices = []
+
+        # Generate the vertices and normals
+        for i in range(resolution):
+            u = i / (resolution - 1)
+            for j in range(resolution):
+                v = j / (resolution - 1)
+                point = self.evaluate_point(u, v)
+                vertices.append(point)
+
+        # Generate the indices for the triangle mesh
+        for i in range(resolution - 1):
+            for j in range(resolution - 1):
+                a = i * resolution + j
+                b = i * resolution + j + 1
+                c = (i + 1) * resolution + j + 1
+                d = (i + 1) * resolution + j
+                indices.extend([[a, b, c], [a, c, d]])
+
+        return TriangleMesh(vertices, indices, self.material)
+
+    def intersects(self, ray: Ray) -> "tuple[float, Vector3] | tuple[None, None]":
+        return self.triangle_mesh.intersects(ray)
+
+    def _get_normal(self, triangle: Triangle) -> Vector3:
+        return self.triangle_mesh._get_normal(triangle)

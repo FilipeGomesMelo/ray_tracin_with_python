@@ -1,7 +1,8 @@
 from __future__ import annotations
+from components import LinearTransformationsMixin
 import math
 
-class Vector3:
+class Vector3(LinearTransformationsMixin):
     def __init__(self, x=.0, y=.0, z=.0) -> None:
         """Simple 3D Vector Class with basic operations"""
         self.x = x
